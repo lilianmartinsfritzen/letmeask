@@ -10,7 +10,7 @@ import { useAuth } from '../hooks/useAuth';
 import '../styles/auth.scss';
 
 export function Home() {
-  const history = useHistory();
+  const history = useHistory()
   const { user, signInWithGoogle } = useAuth()
 
   async function handleCreateRoom() {

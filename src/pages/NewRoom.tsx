@@ -1,16 +1,38 @@
-import { Link } from 'react-router-dom';
+import { FormEvent, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 
 import illustrationImg from '../assets/images/illustration.svg';
 import logoImg from '../assets/images/logo.svg';
 
+import { database } from '../services/firebase';
 import { Button } from '../components/Button';
-// import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
 
 import '../styles/auth.scss';
 
 
 export function NewRoom() {
-  // const { user } = useAuth()
+  const { user } = useAuth()
+  const history = useHistory()
+  const [newRoom, setNewRoom] = useState('');
+
+  // event.preventDefault irá prevenir o comportamento padrão do formulário
+  async function handleCreateRoom(event: FormEvent) {
+    event.preventDefault()
+
+    if (newRoom.trim() === '') {
+      return;
+    }
+
+    const roomRef = database.ref('rooms');
+
+    const firebaseRoom = await roomRef.push({
+      title: newRoom,
+      authorId: user?.id,
+    })
+
+    history.push(`/rooms/${firebaseRoom.key}`)
+  }
   
   return (
     <div id="page-auth">
@@ -23,10 +45,12 @@ export function NewRoom() {
         <div className="main-content">
           <img src={logoImg} alt="Letmeask" />
           <h2>Criar uma nova sala</h2>
-          <form>
+          <form onSubmit={handleCreateRoom}>
             <input 
             type="text"
             placeholder="Nome da sala"
+            onChange={event => setNewRoom(event.target.value)}
+            value={newRoom}
           />
           <Button type='submit'>
             Criar sala
@@ -40,3 +64,7 @@ export function NewRoom() {
     </div>
   )
 }
+
+// Não colocamos o onSubmit no click do Button, porque se o usuário clicar enter dentro
+// do input o submit vai ser executado e ela não clicou no botão. Portanto, ao usarmos
+// formulários no React as funções (salvar, editar... etc) devem ficar dentro do form.
